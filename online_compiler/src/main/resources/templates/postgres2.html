@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Postgres</title>
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+	<style>
+		* {
+			padding: 0;
+			margin: 0;
+			box-sizing: border-box;
+			/* font-family: Arial, Helvetica, sans-serif; */
+		}
+
+		.main-con {
+			height: 100vh;
+			width: 100%;
+		}
+
+		/* Header CSS */
+		.header-con {
+			/* border: 1px solid brown; */
+			height: 10%;
+			width: 100%;
+			background-color: purple;
+			padding: 0 30px;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+		}
+
+		#logo {
+			height: 6vh;
+		}
+
+		/* Body CSS */
+		.body-con {
+			/* border: 1px solid green; */
+			height: 90%;
+			width: 100%;
+			display: flex;
+
+		}
+
+		.left-bar {
+			border-right: 1px solid gray;
+			width: 15%;
+		}
+
+		.center-bar {
+			/* border: 1px solid purple; */
+			width: 50%;
+		}
+
+		.coding-area {
+			/* border: 1px solid yellow; */
+			height: 65%;
+		}
+
+		.buttons {
+			/* border: 1px solid seagreen; */
+			height: 10%;
+			background-color: rgb(224, 205, 219);
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			padding: 0 5px;
+			font-family: Arial, Helvetica, sans-serif;
+			color: #887080;
+
+		}
+
+		.btn {
+			padding: 5px 10px;
+			background-color: rgb(79, 79, 226);
+			border: none;
+			border-radius: 5px;
+			color: white;
+			transition: 0.4s;
+			font-weight: 600;
+			scale: 0.9;
+		}
+
+		.btn:hover {
+			scale: 1;
+			background-color: rgb(64, 64, 187);
+		}
+
+		#codeArea {
+			height: 90%;
+			width: 100%;
+			font-size: 1.2em;
+		}
+
+		.output-area {
+			border-top: 1px solid gray;
+			height: 35%;
+		}
+
+		.outputHeader {
+			background-color: rgb(224, 205, 219);
+			height: 15%;
+			font-family: Arial, Helvetica, sans-serif;
+			display: flex;
+			align-items: center;
+			padding: 0 5px;
+			color: #887080;
+		}
+
+		#outputArea {
+			width: 100%;
+			height: 85%;
+			overflow: auto;
+			padding: 10px;
+		}
+
+		.right-bar {
+			border-left: 1px solid gray;
+			width: 35%;
+		}
+
+		.rightMenu {
+			/*	border: 2px solid black; */
+			height: 93.6%;
+			overflow: auto;
+		}
+
+		.leftHeader,
+		.rightHeader {
+			background-color: rgb(224, 205, 219);
+			height: 6.4%;
+			font-family: Arial, Helvetica, sans-serif;
+			padding: 5px;
+			display: flex;
+			align-items: center;
+			color: #887080;
+		}
+
+		table {
+			width: 100%;
+		}
+
+		thead {
+			/* background-color: black;--> */
+			color: black;
+		}
+
+		table,
+		th,
+		td {
+			border: 1px solid black;
+			border-collapse: collapse;
+			padding: 5px;
+			font-family: Arial, Helvetica, sans-serif;
+		}
+	</style>
+
+
+</head>
+
+<body>
+	<div class="main-con">
+		<div class="header-con">
+			<img id="logo" src="/images/Plogo.png" alt="Code Compass">
+			<div>
+				<button class="btn">Theme</button>
+				<button class="btn" id="dashBoard" onclick="dashBoardClose()">Dashboard</button>
+			</div>
+		</div>
+		<div class="body-con">
+			<div class="left-bar">
+				<div class="leftHeader">
+					<h3>Table Structure</h3>
+				</div>
+				<div class="leftMenu"></div>
+			</div>
+			<div class="center-bar">
+				<div class="coding-area">
+					<div class="buttons">
+						<h3>Input</h3>
+						<div>
+							<button class="btn" onclick="clearSql()">Clear</button>
+							<button class="btn" id="button">Run</button>
+						</div>
+					</div>
+					<div id="codeArea"></div>
+				</div>
+				<div class="output-area">
+					<div class="outputHeader">
+						<h3>Output</h3>
+					</div>
+					<div id="outputArea"></div>
+				</div>
+			</div>
+			<div class="right-bar">
+				<div class="rightHeader">
+					<h3>Available Tables</h3>
+				</div>
+				<div class="rightMenu" id="availableTable"></div>
+			</div>
+		</div>
+	</div>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.24.0/ace.js"></script>
+	<script>
+
+	</script>
+
+	<script>
+
+		function dashBoardClose() {
+			console.log("DashBoard button clicked");
+			$.ajax({
+				url: "/closeDataBase",
+				type: "post",
+				data: "",
+				success: function (result) {
+					console.log("Inside success function")
+					con = confirm("Current window would be closed")
+					if (con) {
+						window.close();
+					}
+				},
+				error: function (xhr, status, error) {
+					console.log("An error occurred:", error);
+				}
+			});
+		}
+
+
+
+		var editor = ace.edit("codeArea");
+		editor.setTheme("ace/theme/chrome");
+		editor.session.setMode("ace/mode/sql");
+		editor.setShowPrintMargin(false);
+		function clearSql() {
+			editor.setValue("");
+		}
+
+
+		$(document).ready(function () {
+
+			/* Avaliable Tables */
+			$.ajax({
+				url: "/beforePostgresWork",
+				type: "get",
+				data: "",
+				success: function (result) {
+					console.log(result)
+					/* console.log(result["queryOutputMap['queryOutput']"]) */
+					$("#availableTable").html("<h3>Customers</h3>" + result.customer + "<br><br><h3>Orders</h3>" + result.orders + "<br><br><h3>Shippings</h3>" + result.shippings);
+
+				}
+			});
+
+
+
+
+
+			$("#button").click(function () {
+				var codeContent = editor.getValue();
+				console.log(codeContent);
+
+				/* var textAreaValue = $("#code").val(); */
+				$.ajax({
+					url: "/postgresWork",
+					type: "post",
+					data: codeContent,
+					contentType: "text/plain",
+					success: function (result) {
+						$("#outputArea").empty().html(result['queryOutputMap']['queryOutput'])
+						// $("#availableTable").html(result['tableMap']['customers']) 
+						var final = "";
+						for (var key in result['tableMap']) {
+							var value = result['tableMap'][key];
+							// $("#availableTable").append(`<div><h3>${key}</h3>${value}</div>`)
+
+							final += "<div><h3>" + key + "</h3>" + value + "</div>";
+
+						}
+						$("#availableTable").html(final);
+
+					}
+				});
+			});
+
+		});
+
+	</script>
+</body>

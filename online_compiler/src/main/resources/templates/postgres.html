@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Postgres</title>
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+
+<body>
+	<div class="main">
+		<div class="child-main">
+
+			<h4>INPUT</h4>
+			<textarea id="code" cols="48" rows="15" placeholder="SQL "></textarea>
+			<h4>OUTPUT</h4>
+		</div>
+		<!--	<textarea id="output" cols="48" rows="15" placeholder="Output{/}"></textarea>-->
+		<div id="output" style="height: 25vh; width: 25%; border: 1px solid black;"></div>
+		<br><br><br>
+		<span> <button id="button">Get Result</button> <button id="button2" onclick="clearSql()">Clear Sql editor</button> </span>
+
+
+	</div>
+</body>
+
+<script>
+	function clearSql(){
+		$("#code").val("");
+	}
+</script>
+<script>
+	$(document).ready(function () {
+
+
+		$("#button").click(function () {
+			var textAreaValue = $("#code").val();
+			$.ajax({
+				url: "/postgresWork",
+				type: "post",
+				data: textAreaValue,
+				contentType: "text/plain",
+				success: function (result) {
+					$("#output").html(result)
+				}
+			});
+		});
+
+	});
+
+</script>
+
+</html>

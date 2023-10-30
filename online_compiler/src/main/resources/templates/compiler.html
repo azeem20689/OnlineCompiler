@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>My Compiler</title>
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+	<!--<link rel="stylesheet" href="th:href="@{/styles.css}"">-->
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			/*	font-family: Arial, Helvetica, sans-serif */
+		}
+
+		/* Main Container */
+		.main-con {
+			width: 100%;
+			height: 100vh;
+		}
+
+		/* Header Css */
+		.header-con {
+			border-bottom: 1px solid gray;
+			height: 15%;
+			width: 100%;
+			background-color: rebeccapurple;
+		}
+
+		.nav-con {
+			/* border: 1px solid red; */
+			width: 90%;
+			height: 100%;
+			margin: 0 auto;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+		}
+
+		.logo {
+			height: 6vh;
+		}
+
+		/* Body Css */
+		.body-con {
+			/* border: 1px solid green; */
+			height: 85%;
+			width: 100%;
+			display: flex;
+		}
+
+		.icon-area {
+			border-right: 1px solid gray;
+			width: 5%;
+		}
+
+		.code-area {
+			/* border: 1px solid navy; */
+			width: 50%;
+		}
+
+		.input-buttons {
+			border-bottom: 1px solid gray;
+			height: 10%;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			padding: 0 5px;
+
+		}
+
+		.input-buttons>div>input {
+			outline: none;
+			border: 1px solid gray;
+			padding: 3px;
+			border-radius: 5px;
+			transition: .3s;
+		}
+
+		.input-buttons>div>input:focus {
+			border: 1px solid rgb(14, 102, 190);
+			box-shadow: 1px 1px 5px rgba(30, 143, 255, 0.527);
+		}
+
+		.input-code {
+			/* border: 1px solid firebrick; */
+			height: 90%;
+			width: 100%;
+			font-size: 1.2em;
+		}
+
+		.output-area {
+			border: 1px orange;
+			width: 45%;
+
+		}
+
+		.output-buttons {
+			border-left: 1px solid gray;
+			border-bottom: 1px solid gray;
+			height: 10%;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			padding: 0 5px;
+		}
+
+		.btn {
+			padding: 5px 10px;
+			background-color: rgb(14, 102, 190);
+			border: none;
+			border-radius: 6px;
+			color: white;
+			cursor: pointer;
+			scale: .95;
+			transition: .3s;
+			font-weight: 600;
+		}
+
+		.btn:hover {
+			scale: 1;
+			background-color: rgb(7, 93, 180);
+		}
+
+		.output-code {
+			height: 90%;
+			resize: none;
+			width: 100%;
+			border: none;
+			border-left: 1px solid gray;
+			outline: 0;
+			padding: 5px;
+		}
+	</style>
+
+</head>
+
+<body>
+
+	<div class="main-con">
+		<div class="header-con">
+			<div class="nav-con">
+				<img src="images/Plogo.png" alt="ProfileLogo" class="logo">
+				<div class="navItems">
+					<button class="btn" id="theme"><i class="fa-solid fa-moon"></i></button>
+					<button class="btn" id="dashBoardButton" onclick="goToDashboard()">Dashboard</button>
+				</div>
+			</div>
+		</div>
+		<div class="body-con">
+			<div class="icon-area"></div>
+			<div class="code-area">
+				<div class="input-buttons">
+					<div>
+						<input id="fileName" type="text" placeholder="Enter Filename">
+						<input id="inputParam" type="text" placeholder="Enter Parameter">
+						<input id="courseCode" type="text" placeholder="CourseCode">
+					</div>
+					<button class="btn" id="runCode" onclick="getOutput()">Run</button>
+				</div>
+				<!-- <div class="input-code"></div> -->
+				<div id="codeArea" class="input-code"></div>
+			</div>
+			<div class="output-area">
+				<div class="output-buttons">
+					<div>
+						<h3>Output</h3>
+					</div>
+					<div>
+						<button class="btn" onclick="checkFinalUser()">CHECK finalUser</button>
+						<!--<button class="btn" onclick="saveOutput()">Save</button>-->
+						<button class="btn" id="clearOutput" onclick="clearOutput()">Clear</button>
+					</div>
+				</div>
+				<!--<div class="output-code" id="outputArea"></div>-->
+				<textarea class="output-code" id="outputArea" placeholder="Output {/}"></textarea>
+			</div>
+		</div>
+	</div>
+
+	<!-- Ace.js cdn -->
+	<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>-->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.24.0/ace.js"></script>
+
+	<script>
+		// -------------------- HTML Output -------------->>
+
+		document.addEventListener("DOMContentLoaded", function () {
+			var ChkLang = window.localStorage.getItem("lan");
+			if (ChkLang == 'html') {
+
+				const container = document.getElementById("outputArea");
+
+				// Create an iframe element
+				const iframe = document.createElement("iframe");
+
+				// Set iframe attributes (src, width, height, etc.)
+				//iframe.src = "https://www.bing.com";
+				// iframe.width = "100%";
+				// iframe.height = "100%";
+				iframe.className = "output-code";
+				iframe.id = "outputArea";
+
+				// Replace the div with the iframe
+				container.parentNode.replaceChild(iframe, container);
+
+				// set up html output -->
+				const compileBtn = document.getElementById('runCode');
+				const outputFrame = document.getElementById('outputArea');
+
+				compileBtn.addEventListener('click', () => {
+					const code = htmlCode;
+					const outputDocument = outputFrame.contentWindow.document;
+
+					outputDocument.open();
+					outputDocument.write(code);
+					outputDocument.close();
+				});
+			}
+		});
+
+
+		// -------------------- ACE-EDITOR---------------->>
+		var editor = ace.edit("codeArea");
+		editor.setTheme("ace/theme/chrome");
+		editor.session.setMode("ace/mode/java");
+
+		var htmlCode;
+		function getOutput() {
+
+			var courseCode = $("#courseCode").val();
+			console.log(">>>>>>>>>>> HERE >>>"+courseCode);
+
+			if (courseCode.trim() === "") {
+				console.log("getOutput() called")
+
+				var codeContent = editor.getValue();
+				htmlCode = codeContent;
+				var formData = {
+					filename: $("#fileName").val(),
+					param: $("#inputParam").val(),
+					code: codeContent
+				};
+
+				console.log(JSON.stringify(formData));
+
+				$.ajax({
+					url: "/ajaxCompiler",
+					type: "post",
+					data: JSON.stringify(formData),
+					contentType: "application/json; charset=utf-8",
+					/*  dataType: "json", */
+					success: function (result) {
+						console.log(result)
+						$("#outputArea").empty().html(result)
+						window.localStorage.clear();
+					}
+				});
+
+			} else {
+				console.log("getOutput() 2.0  called for course code")
+
+				var codeContent = editor.getValue();
+				htmlCode = codeContent;
+				var formData = {
+					filename: $("#fileName").val(),
+					param: $("#inputParam").val(),
+					code: codeContent,
+					courseCode: $("#courseCode").val()
+				};
+
+				console.log(JSON.stringify(formData));
+
+				$.ajax({
+					url: "/courseAjaxOutput",
+					type: "post",
+					data: JSON.stringify(formData),
+					contentType: "application/json; charset=utf-8",
+					/*  dataType: "json", */
+					success: function (result) {
+						console.log(result)
+						$("#outputArea").empty().html(result)
+						window.localStorage.clear();
+					}
+				});
+			}
+		}
+
+		function saveOutput() {
+
+			var codeContent = editor.getValue();
+
+			var formData = {
+				fileName: $("#fileName").val(),
+				output: $("#outputArea").html(),
+				parameter: $("#inputParam").val(),
+				code: codeContent
+
+
+			};
+
+			console.log(JSON.stringify(formData));
+
+			$.ajax({
+				url: "/saveOutput",
+				type: "post",
+				data: JSON.stringify(formData),
+				contentType: "application/json; charset=utf-8",
+				/*  dataType: "json", */
+				success: function (result) {
+					console.log(result)
+					alert(result)
+				}
+			});
+
+		}
+
+		function clearOutput() {
+			$("#outputArea").empty();
+		}
+
+		function goToDashboard() {
+			check = confirm("Current tab would be closed , make sure to save the changes")
+			if (check) {
+				// Close the current tab (child tab)
+				window.close();
+
+				// Focus on the opener tab (previous tab)
+				if (window.opener && !window.opener.closed) {
+					window.opener.location.reload();
+					window.opener.focus();
+				}
+			}
+		}
+
+		function deleteOutput() {
+			console.log("deletebutton clicked")
+			var fileName = $("#fileName").val()
+			$.ajax({
+				url: "/delete",
+				type: "post",
+				data: {
+					requestBody: fileName
+				},
+				success: function (result) {
+					alert(result);
+					if (window.opener) {
+						window.opener.location.reload();
+					}
+					window.close()
+				}
+
+			});
+		}
+
+		// -----------------------------------------------------------------------------
+
+
+		var code = window.localStorage.getItem("code");
+		var fileName = window.localStorage.getItem("fileName");
+		var param = window.localStorage.getItem("param");
+		var outputCode = window.localStorage.getItem("output");
+		var courseCode = window.localStorage.getItem("courseCode");
+		
+
+		console.log(code);
+		console.log(fileName);
+		console.log(param);
+		console.log(outputCode);
+		console.log(courseCode);
+
+
+		var output = window.localStorage.getItem("lan");
+		window.localStorage.clear();
+
+		$(document).ready(function () {
+			editor.session.setValue(code);
+			$("#fileName").empty().val(fileName);
+			$("#inputParam").empty().val(param);
+			$("#outputArea").empty().html(outputCode);
+			$("#courseCode").empty().val(courseCode);
+
+
+
+
+
+			$.ajax({
+				url: "/testing",
+				type: "post",
+				data: {
+					requestBody: output,
+				},
+				success: function (result) {
+					console.log("Result received from server " + result)
+					if (result && result.code) {
+						editor.session.setValue(result.code);
+					}
+
+					if (result && result.fileName) {
+						$("#fileName").val(result.fileName);
+					}
+
+					if (result && result.output) {
+						$("#outputArea").empty().html(result.output);
+						window.localStorage.clear();
+					} else {
+						$("#outputArea").empty(); // Clear the output area if result.output is blank
+						window.localStorage.clear();
+					}
+				}
+			});
+		});
+
+
+	function checkFinalUser(){
+		$.ajax({
+			url : "/checkFinalUser",
+			type : "get",
+			data : "",
+			success : function(result){
+				alert(result)
+			}
+		})
+	}
+
+	</script>
+</body>
+
+
+</html>

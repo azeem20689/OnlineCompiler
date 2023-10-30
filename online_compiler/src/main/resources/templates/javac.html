@@ -1,0 +1,287 @@
+
+<!doctype html>
+<html lang="eg" xlmns:th="http://www.thymeleaf.org">
+<head>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<link rel="stylesheet"
+	href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.rtl.min.css"
+	integrity="sha384-DOXMLfHhQkvFFp+rWTZwVlPVqdIhpDVYT9csOnHSgWQWPX0v5MCGtjCJbY6ERspU"
+	crossorigin="anonymous">
+<script
+	src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
+	integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4"
+	crossorigin="anonymous"></script>
+<title>My Compiler</title>
+<style>
+.CenterContainer {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.codeItemsDiv {
+	border: 1px solid black;
+	height: 110px;
+	overflow-y: auto;
+	width: 70%;
+	padding: 5px
+}
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
+
+
+</head>
+<body>
+	<div class="CenterContainer">
+		<div class="container" style="width: 100%; display: flex;">
+			<form class="col-3" style="width: 50%;" th:action="@{/compiler}"
+				th:object="${user}" method="post">
+				<h2>
+					<cite style="color: orange">Code Compass </cite>
+				</h2>
+				<br>
+				<div class="btn-group">
+					<button style="color: white"
+						class="btn btn-secondary btn-lg dropdown-toggle" type="button"
+						data-bs-toggle="dropdown" aria-expanded="false">Languages</button>
+					<ul class="dropdown-menu">
+						<li><a class="dropdown-item" onclick="getData('Java')">Java</a></li>
+						<li><a class="dropdown-item" onclick="getData('Python')">Python</a></li>
+						<li><a class="dropdown-item" onclick="getData('C')">C</a></li>
+						<li><a class="dropdown-item" onclick="getData('cpp')">c++</a></li>
+						<li><a class="dropdown-item" onclick="getData('Bash')">Bash</a></li>
+						<li><a class="dropdown-item" onclick="getData('js')">JS</a></li>
+
+					</ul>
+				</div>
+				<br> <br>
+				<div style="width: 70%;" class="input-group input-group-sm mb-3">
+					<span class="input-group-text" id="inputGroup-sizing-sm">File
+						Name</span> <input id="return" type="text" th:field="*{filename}"
+						placeholder="Enter File Name">
+				</div>
+				<div style="width: 70%;" class="input-group input-group-sm mb-3">
+					<span class="input-group-text" id="inputGroup-sizing-sm">Prameters</span>
+					<input id="param" type="text" th:field="*{parameter}"
+						placeholder="Maintain spaces ex- 1 2 3">
+				</div>
+
+
+
+				<h3 style="color: blue">Write Code</h3>
+
+
+				<!-- <textarea rows="18" cols="40" th:field="*{code}" id="codeArea"
+				placeholder="Write Code{/}"></textarea> -->
+
+				<div id="codeArea" style="height: 450px; width: 80%;"></div>
+
+				<!-- <button type="submit" class="btn btn-success">Compile</button> -->
+				<button type="button" class="btn btn-success" onclick="getOutput()">Compile
+					2.0</button>
+				<button type="button" class="btn btn-success" onclick="saveOutput()">SaveOutput</button>
+				<button type="button" class="btn btn-success" onclick="Delete()">Delete</button>
+
+
+			</form>
+
+
+
+			<div class="container">
+				<br> <br>
+				<h4 style="color: orange">Code Repository</h4>
+				<span>Total No. of File : </span> <span id="valueFromThymeleaf"
+					th:text="${size}"></span>
+				<div class="codeItemsDiv">
+					<div th:each="code, iterator : ${list}">
+
+						<button th:id="${iterator.index}" type="button"
+							th:text="${code.fileName}"></button>
+
+					</div>
+				</div>
+				<br> <br>
+				<h4>
+					<div style="color: blue">Output</div>
+				</h4>
+				<div>
+					<textarea rows="18" cols="40" id="outputArea"
+						placeholder="Output {/}"></textarea>
+
+				</div>
+			</div>
+
+
+
+		</div>
+
+	</div>
+
+
+
+</body>
+<script>
+	/*  */
+	var editor = ace.edit("codeArea");
+	editor.setTheme("ace/theme/chrome");
+	editor.session.setMode("ace/mode/python");
+	editor.setFontSize("19px");
+
+	/*  */
+
+	function Delete() {
+		console.log("Delete() called")
+		$.ajax({
+			url : "/delete",
+			type : "post",
+			data : {
+				requestBody : $("#return").val()
+			},
+			success : function(result) {
+				alert(result)
+			}
+		});
+
+	}
+
+	function saveOutput() {
+
+		var formData = {
+			fileName : $("#return").val(),
+			code : $("#codeArea").val(),
+			output : $("#outputArea").val(),
+			parameter : $("#param").val()
+
+		};
+
+		console.log(JSON.stringify(formData));
+
+		$.ajax({
+			url : "/saveOutput",
+			type : "post",
+			data : JSON.stringify(formData),
+			contentType : "application/json; charset=utf-8",
+			/*  dataType: "json", */
+			success : function(result) {
+				console.log(result)
+				alert(result)
+			}
+		});
+
+	}
+
+	function getOutput() {
+		console.log("getOutput() called")
+
+		var codeContent = editor.getValue();
+
+		var formData = {
+			filename : $("#return").val(),
+			param : $("#param").val(),
+			code : codeContent
+		};
+
+		console.log(JSON.stringify(formData));
+
+		$.ajax({
+			url : "/ajaxCompiler",
+			type : "post",
+			data : JSON.stringify(formData),
+			contentType : "application/json; charset=utf-8",
+			/*  dataType: "json", */
+			success : function(result) {
+				console.log(result)
+				$("#outputArea").html(result)
+			}
+		});
+
+	}
+
+	function getData(language) {
+		$.ajax({
+			url : "/testing",
+			type : "post",
+			data : {
+				requestBody : language,
+			},
+			success : function(result) {
+				console.log(result.code)
+				editor.session.setValue(result.code)
+				$("#return").val(result.fileName)
+
+			}
+
+		});
+
+	}
+
+	var output = window.localStorage.getItem("lan");
+
+	$(document).ready(
+			function() {
+
+				/*  */
+				console.log(output);
+
+				$.ajax({
+					url : "/testing",
+					type : "post",
+					data : {
+						requestBody : output,
+					},
+					success : function(result) {
+
+						editor.session.setValue(result.code)
+						$("#return").val(result.fileName)
+
+					}
+
+				});
+
+				/*  */
+
+				var valueFromThymeleaf = document
+						.getElementById("valueFromThymeleaf").textContent;
+
+				console.log("Value from Thymeleaf: " + valueFromThymeleaf);
+
+				for (var i = 0; i < parseInt(valueFromThymeleaf); i++) {
+
+					let file = document.getElementById(i).textContent;
+					/* console.log(file); */
+
+					$("#" + i).click(function() {
+
+						/* var getFile = file;  */
+
+						$.ajax({
+							url : "/ajax",
+							type : "post",
+							data : {
+								requestBody : file,
+							},
+							success : function(result) {
+								console.log(result)
+								editor.session.setValue(result.code)
+								$("#return").val(result.fileName)
+								$("#param").val(result.param)
+								$("#outputArea").html(result.out)
+
+							}
+						});
+
+					});
+
+				}
+
+			});
+
+	/* getDataFunction() */
+</script>
+</html>

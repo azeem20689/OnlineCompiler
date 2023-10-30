@@ -1,0 +1,615 @@
+<script>
+	function getData(language) {
+		console.log("Card choosed :" + language);
+		if (language == "Postgres") {
+			$.ajax({
+				url: "/getLinuxConf",
+				type: "get",
+				data: "",
+				success: function (result) {
+					console.log(result.userName);
+					console.log(result.ip);
+					console.log(result.password);
+					console.log(result.port);
+					const iframeSrc = `http://${result.ip}:8888/?hostname=${result.ip}&port=${result.port}&username=${result.userName}&password=${result.password}&command=clear; psql -U ${result.userName} -d postgres -W`;
+
+					terminalCon.innerHTML = `<iframe class="webssh" src="${iframeSrc}" title="Online web terminal"></iframe>`;
+
+				}
+			});
+		} else if (language == "oracle") {
+			window.open("/oracle");
+		} else if (language == "mysql") {
+			$.ajax({
+				url: "/getMySqlConf",
+				type: "get",
+				data: "",
+				success: function (result) {
+					console.log(result.userName);
+					console.log(result.ip);
+					console.log(result.password);
+					console.log(result.port);
+					const iframeSrc = `http://${result.ip}:8888/?hostname=${result.ip}&port=${result.port}&username=${result.userName}&password=${result.password}&command=clear; mysql -h localhost -P ${result.port} -u ${result.userName} -p`;
+
+					terminalCon.innerHTML = `<iframe class="webssh" src="${iframeSrc}" title="Online web terminal"></iframe>`;
+
+				}
+			});
+		} else {
+			window.localStorage.setItem("lan", language);
+			window.open("/java");
+		}
+	}
+</script>
+<!DOCTYPE html>
+<html lang="en" xlmns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Dashboard</title>
+	<link rel="shortcut icon" src="images/code.png" type="image/x-icon">
+	<!-- <link rel="stylesheet" href="./home.css"> -->
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			font-family: Arial, Helvetica, sans-serif;
+		}
+
+		.main-container {
+			width: 100%;
+			height: 100vh;
+			/* background-color: purple; */
+		}
+
+		/* Header CSS */
+		.header {
+			/* border: 1px solid black; */
+			background-color: slateblue;
+			height: 15%;
+			display: flex;
+		}
+
+		.img-con {
+			/* border: 1px solid black; */
+			width: 20%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		.logo {
+			height: 6vh;
+			cursor: pointer;
+		}
+
+		.navMenu-con {
+			/*	border: 1px solid firebrick; */
+			width: 80%;
+			display: flex;
+		}
+
+		.navItems {
+			/* border: 1px solid blue; */
+			width: 80%;
+			display: flex;
+			align-items: center;
+			justify-content: end;
+		}
+
+		.config {
+			font-size: 1.5em;
+			color: white;
+			padding: 5px;
+			text-decoration: none;
+		}
+
+		.profile-con {
+			/* border: 1px solid red; */
+			width: 20%;
+			height: 100%;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			flex-direction: column;
+		}
+
+		.profile-con>span {
+			padding: 5px;
+			font-weight: 600;
+			font-size: 1.2em;
+			color: white;
+
+		}
+
+		.pro-Logo {
+			height: 50%;
+			filter: invert();
+		}
+
+		/* Body Container CSS */
+		.body-container {
+			/* border: 1px solid red; */
+			height: 85%;
+			width: 100%;
+			display: flex;
+		}
+
+		/* SideMenu CSS */
+		.side-Menu {
+			/* border: 1px solid green; */
+			width: 20%;
+			background-color: #a2a3d3;
+		}
+
+		.sideHeader {
+			/* border: 1px solid; */
+			height: 5%;
+			background-color: rebeccapurple;
+			color: white;
+			padding: 5px;
+			font-weight: 600;
+			font-size: 1.5em
+		}
+
+		.tree-con {
+			/*	border: 1px solid red; */
+			height: 70%;
+			display: none;
+		}
+
+		/* Dashboard Container CSS */
+		.dashboard-container {
+			/* border: 1px solid indigo; */
+			width: 80%;
+		}
+
+		.dashboard-header {
+			/* border: 1px solid red; */
+			height: 20%;
+		}
+
+		.dashboard-content {
+			/* border: 1px solid red; */
+			height: 80%;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+		}
+
+		.programing-lang,
+		.scripting-lang,
+		.dbms-lang,
+		.os {
+			/*border: 1px solid green; */
+			height: 30%;
+			width: 100%;
+			overflow-x: auto;
+			/* background-color: lightblue; */
+			display: flex;
+			align-items: center;
+			padding: 0 30px;
+			gap: 15px;
+		}
+
+		.card {
+			/* border: 1px solid red; */
+			height: 90%;
+			width: 12%;
+			border-radius: 10px;
+			/*  overflow: hidden; */
+			box-shadow: 0 2px 7px rgba(128, 128, 128, 0.541);
+			transition: .5s;
+			scale: .9;
+			text-decoration: none;
+			color: firebrick;
+		}
+
+		.card:hover {
+			cursor: pointer;
+			scale: 1;
+		}
+
+		.itemImg {
+			height: 80%;
+			/* border: 1px solid red; */
+			/* background-color: whitesmoke; */
+			/* width: 80%; */
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		.itemLogo {
+			height: 90%;
+		}
+
+		.card>p {
+			text-align: center;
+		}
+
+		.dirList {
+			height: 5%;
+			background-color: indigo;
+			padding: 5px;
+			color: white;
+			font-size: 1.5em;
+			font-weight: 600;
+			overflow: hidden;
+			transition: .5s;
+		}
+
+		/* Terminal CSS */
+		.webssh {
+			width: 100%;
+			height: 100%;
+		}
+
+
+		/* Courses List CSS*/
+
+		.option-list {
+			list-style: none;
+			padding: 0;
+		}
+
+		.option-item {
+			cursor: pointer;
+			margin-bottom: 10px;
+			font-size: 18px;
+
+		}
+
+		.options {
+			display: none;
+			font-size: 14px;
+		}
+	</style>
+	</style>
+
+
+
+	<script type="text/javascript">
+
+		window.addEventListener('beforeunload', (event) => {
+			$.ajax({
+				url: "/userLogoutTime",
+				type: "post",
+				data: "",
+				success: function (resut) {
+					console.log(result)
+				}
+			})
+			event.returnValue = "";
+		});
+	</script>
+
+
+</head>
+
+<body>
+	<div class="main-container">
+		<div class="header">
+			<div class="img-con">
+				<img id="homeBtn" src="images/Plogo.png" alt="CompanyLogo" class="logo">
+			</div>
+			<div class="navMenu-con">
+				<div class="navItems">
+					<!--<a class="config" target="_blank" href="/admin">-->
+					<i class="fa-solid fa-gear"></i>
+					<!--</a>-->
+				</div>
+
+				<div class="profile-con">
+					<img class="pro-Logo" src="images/pngwing.com.png" alt="ProfileLogo">
+					<span class="pro-title" th:text="${userName}"></span>
+				</div>
+			</div>
+		</div>
+		<div class="body-container">
+
+			<div class="side-Menu">
+				<div class="sideHeader">Navigation</div>
+				<div class="dirList" id="dirList" onclick="showTree()">Directories</div>
+				<div id="jstree" class="tree-con" th:utext="${treeStructure}"></div>
+				<div id="myCourses" class="dirList">My Courses</div>
+				<div id="courseContent"> </div>
+				<div class="dirList" onclick="showCourses()" style="cursor: pointer;" >Avaliable Courses</div>
+				<!--<div id="avaliableCourses" class="sideHeader">Courses
+				</div>-->
+			</div>
+			<div id="termCon" class="dashboard-container">
+				<div class="dashboard-header"></div>
+				<div class="dashboard-content">
+					<h3>Programing Languages</h3>
+					<div class="programing-lang">
+						<div class="card" th:each="config : ${divConfListProgramming}"
+							th:attr="onclick=|getData('${config.language}')|">
+							<div class="itemImg">
+								<img th:src="${config.iconPath}" alt="" class="itemLogo">
+							</div>
+							<p th:text="${config.title}">Title</p>
+						</div>
+					</div>
+					<h3>Scripting Languages</h3>
+					<div class="scripting-lang">
+						<div class="card" th:each="config : ${divConfListScripting}"
+							th:attr="onclick=|getData('${config.language}')|">
+							<div class="itemImg">
+								<img th:src="${config.iconPath}" alt="" class="itemLogo">
+							</div>
+							<p th:text="${config.title}">Title</p>
+						</div>
+					</div>
+					<h3>Data-Base</h3>
+					<div class="dbms-lang">
+						<div class="card" th:each="config : ${divConfListDataBase}"
+							th:attr="onclick=|getData('${config.language}')|">
+							<div class="itemImg">
+								<img th:src="${config.iconPath}" alt="" class="itemLogo">
+							</div>
+							<p th:text="${config.title}">Title</p>
+						</div>
+
+					</div>
+					<h3>Operating System</h3>
+					<div class="os">
+						<div onclick="getThis(this)" class="card" th:each="config : ${divConfListOperatingSystem}">
+							<div class="itemImg">
+								<img th:src="${config.iconPath}" alt="" class="itemLogo">
+							</div>
+							<p th:text="${config.title}">Title</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- TESTING CODE BEGINS HERE -->
+	<div id="coursesList">
+		
+	</divid>
+	<!--End testing code -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script>
+	<script>
+		$(document).ready(function () {
+			//$.ajax({
+				//url: "/courseList",
+				//type: "get",
+				//data: "",
+				//success: function (result) {
+					//console.log("AVALIABLE COURSES >>>>>> " + result)
+					//$("#avaliableCourses").html(result);
+					//console.log(">>>>>>>> END COURSES >>>>>> ");
+				//}
+			//});
+			$.ajax({
+				url: "/adaptedCourseList",
+				type: "get",
+				data: "",
+				success: function (result) {
+					console.log(result);
+					// Replace the content of the courseContent div with the jsTree
+					$("#courseContent").html('<div id="courseTree">' + result + '</div>');
+
+					// Initialize jsTree
+					$('#courseTree').jstree();
+
+					// Add an event listener for when a node is clicked
+					$('#courseTree').on('select_node.jstree', function (e, data) {
+						var selectedNode = data.node;
+						if (selectedNode) {
+							var itemName = selectedNode.text;
+							// Do something with the clicked item name
+							console.log("Clicked item: >>>>> " + itemName);
+
+
+							$.ajax({
+								url: "/courseAjax",
+								type: "get",
+								data: {
+									requestBody: itemName,
+								},
+								success: function (result) {
+									console.log(result)
+									window.localStorage.clear();
+									window.localStorage.setItem("fileName", result.fileName);
+									window.localStorage.setItem("code", result.code.trim());
+									window.localStorage.setItem("param", result.param);
+									window.localStorage.setItem("output", result.out);
+									window.localStorage.setItem("courseCode", result.courseCode);
+									window.open("/java");
+								}
+
+							});
+
+
+
+						}
+					});
+				}
+			});
+
+
+
+
+
+		});
+		window.addEventListener('beforeunload', function (e) {
+		});
+		terminalCon = document.getElementById('termCon')
+		function getThis(ele) {
+			// console.log(ele)
+			chk = ele.children[1].innerText.toLowerCase();
+			console.log(chk)
+			if (chk == 'linux os') {
+				$.ajax({
+					url: "/getLinuxConf",
+					type: "get",
+					data: "",
+					success: function (result) {
+						console.log(result.userName);
+						console.log(result.ip);
+						console.log(result.password);
+						console.log(result.port);
+
+
+
+						//terminalCon.innerHTML = `<iframe class="webssh" src="http://192.168.101.15:8888/?hostname=192.168.0.39&port=22&username=azeem&password=YXplZW0jMTIzCg==" title="Online web terminal"></iframe>`-->
+						//	terminalCon.innerHTML = `<iframe class="webssh" src="http://192.168.0.39:8888/?hostname=192.168.0.39&port=22&username=testing&password=dGVzdGluZwo=" title="Online web terminal"></iframe>`
+						// window.open("http://192.168.0.39:8888")
+						const iframeSrc = `http://${result.ip}:8888/?hostname=${result.ip}&port=${result.port}&username=${result.userName}&password=${result.password}`;
+
+						terminalCon.innerHTML = `<iframe class="webssh" src="${iframeSrc}" title="Online web terminal"></iframe>`;
+
+					}
+				});
+			}
+		}
+
+		const myTree = document.getElementById('jstree');
+		function showTree() {
+			if (myTree.style.display == 'none') {
+				myTree.style.display = 'block'
+			} else {
+				myTree.style.display = 'none'
+			}
+		}
+
+		const homeBtn = document.getElementById("homeBtn")
+		homeBtn.addEventListener('click', function () {
+			location.reload()
+		})
+
+
+
+		$(function () {
+			// 6 create an instance when the DOM is ready
+			$('#jstree').jstree();
+			// 7 bind to events triggered on the tree
+
+
+			$('#jstree').on('click', '.clickable li ', function (e) {
+				var itemName = $(this).text().trim();
+				console.log("Clicked:", itemName);
+				$.ajax({
+					url: "/ajax",
+					type: "post",
+					data: {
+						requestBody: itemName,
+					},
+					success: function (result) {
+						console.log(result)
+						window.localStorage.clear();
+						window.localStorage.setItem("fileName", result.fileName);
+						window.localStorage.setItem("code", result.code.trim());
+						window.localStorage.setItem("param", result.param);
+						window.localStorage.setItem("courseCode", result.courseCode);
+						//window.localStorage.setItem("output", result.out);
+						window.open("/java");
+					}
+
+				});
+
+			});
+
+		});
+
+
+
+
+		function openURL(dbName) {
+			if (dbName === "postgres") {
+				/* window.location.href="/postgres"; */
+				window.open("/postgres")
+			}
+		}
+
+
+		var divConf = $("#divConf").val();
+		$(document).ready(function () {
+			for (i in divConf) {
+				console.log(i);
+			}
+		});
+
+
+
+	</script>
+	<script>
+		var selectedItem = "";
+		var selectedChoice = "";
+
+		function toggleOptions(item, itemName) {
+			selectedItem = itemName;
+			var options = item.nextElementSibling;
+			if (options.style.display === "none") {
+				options.style.display = "block";
+			} else {
+				options.style.display = "none";
+			}
+		}
+
+		//function captureChoice(choice) {
+			//selectedChoice = choice;
+			//console.log("Selected Item: " + selectedItem);
+			//console.log("Selected Choice: " + selectedChoice);
+			//$.ajax({
+				//url: "/addCourses",
+				//type: "post",
+				//data: {
+					//requestBody: selectedItem
+				//},
+				//success: function (result) {
+					//console.log(result)
+					//alert(result)
+				//}
+			//})
+
+		//}
+		
+		function showCourses(){
+			//window.location.href="/courseList"
+			console.log("SHOW COURSES FIRED");
+			$.ajax({
+				url:"/courseList",
+				type : "get",
+				data :"",
+				success : function(result){
+					$("#coursesList").html(result);
+				}
+			});
+		}
+
+	  function addCourse(courseName) {
+		  console.log("coursename >>>"+courseName);
+		  
+		  $.ajax({
+			 url : "/addCourses",
+			 type : "post",
+			 data : { "courseName": courseName },
+			 success : function(result){
+				  alert("Added course: " + result);
+			 } 
+		  });
+           
+        }
+
+        function deleteCourse(courseName) {
+			
+            alert("Deleted course: " + courseName);
+        }
+
+	</script>
+</body>
+
+
+
+
+</html>
